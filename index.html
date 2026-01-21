@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>NADO S1 — $ per POINT</title>
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+	:root{
+	  --bg: #070b14;
+	  --card: rgba(255,255,255,.06);
+	  --border: rgba(255,255,255,.10);
+	  --text: rgba(255,255,255,.92);
+	  --muted: rgba(255,255,255,.65);
+	  --soft: rgba(255,255,255,.08);
+	  --shadow: 0 10px 30px rgba(0,0,0,.35);
+	  --radius: 18px;
+	}
+
+	/* Always-dark + embed-friendly */
+	html, body { height: 100%; }
+	body{
+	  margin: 0;
+	  background: radial-gradient(1200px 600px at 10% 0%, rgba(110, 168, 255, .18), transparent 60%),
+				  radial-gradient(1000px 500px at 95% 20%, rgba(180, 90, 255, .16), transparent 60%),
+				  var(--bg);
+	  color: var(--text);
+	  -webkit-font-smoothing: antialiased;
+	  -moz-osx-font-smoothing: grayscale;
+	}
+
+	/* Keep it compact for embeds; still looks great fullscreen */
+	.wrap{
+	  padding: 16px;
+	  max-width: 640px;
+	  margin: 0 auto;
+	}
+
+	.cardx{
+	  background: var(--card);
+	  border: 1px solid var(--border);
+	  box-shadow: var(--shadow);
+	  border-radius: var(--radius);
+	  overflow: hidden;
+	  backdrop-filter: blur(10px);
+	}
+
+	.header{
+	  padding: 16px 16px 10px 16px;
+	  border-bottom: 1px solid var(--border);
+	}
+
+	.title{
+	  font-size: 1.1rem;
+	  font-weight: 700;
+	  letter-spacing: .2px;
+	  margin: 0;
+	  line-height: 1.15;
+	}
+
+	.subtitle{
+	  margin: 6px 0 0 0;
+	  color: var(--muted);
+	  font-size: .9rem;
+	}
+
+	.content{
+	  padding: 14px 16px 16px 16px;
+	}
+
+	.rowx{
+	  display: grid;
+	  gap: 8px;
+	  margin-bottom: 14px;
+	}
+
+	.topline{
+	  display:flex;
+	  align-items:center;
+	  justify-content:space-between;
+	  gap: 10px;
+	}
+
+	.label{
+	  font-weight: 650;
+	  font-size: .95rem;
+	  line-height: 1.2;
+	}
+
+	.pill{
+	  background: var(--soft);
+	  border: 1px solid var(--border);
+	  border-radius: 999px;
+	  padding: 6px 10px;
+	  font-variant-numeric: tabular-nums;
+	  color: var(--text);
+	  white-space: nowrap;
+	  font-size: .9rem;
+	}
+
+	.range-meta{
+	  display:flex;
+	  justify-content:space-between;
+	  color: var(--muted);
+	  font-size: .8rem;
+	  margin-top: 2px;
+	}
+
+	/* Touch-friendly slider */
+	input[type="range"].form-range{
+	  height: 2.1rem;
+	  padding: 0;
+	}
+
+	/* Result box */
+	.resultBox{
+	  margin-top: 10px;
+	  padding: 14px 14px;
+	  border-top: 1px solid var(--border);
+	  background: rgba(0,0,0,.18);
+	}
+
+	.resultLabel{
+	  color: var(--muted);
+	  font-size: .85rem;
+	  margin-bottom: 2px;
+	}
+
+	.resultValue{
+	  font-size: clamp(1.5rem, 4.8vw, 2.1rem);
+	  font-weight: 800;
+	  letter-spacing: .2px;
+	  font-variant-numeric: tabular-nums;
+	  line-height: 1.1;
+	}
+
+	.resultSub{
+	  color: var(--muted);
+	  font-size: .85rem;
+	  margin-top: 6px;
+	  font-variant-numeric: tabular-nums;
+	}
+
+	.btns{
+	  display:grid;
+	  grid-template-columns: 1fr;
+	  gap: 10px;
+	  margin-top: 12px;
+	}
+
+	@media (min-width: 520px){
+	  .btns{ grid-template-columns: 1fr 1fr; }
+	  .wrap{ padding: 18px; }
+	}
+
+	.btn-darksoft{
+	  background: var(--soft);
+	  border: 1px solid var(--border);
+	  color: var(--text);
+	}
+	.btn-darksoft:hover{
+	  background: rgba(255,255,255,.12);
+	  border-color: rgba(255,255,255,.18);
+	  color: var(--text);
+	}
+
+	.toastx{
+	  position: fixed;
+	  left: 50%;
+	  bottom: 18px;
+	  transform: translateX(-50%);
+	  background: rgba(0,0,0,.55);
+	  border: 1px solid var(--border);
+	  color: var(--text);
+	  padding: 10px 12px;
+	  border-radius: 12px;
+	  font-size: .9rem;
+	  display: none;
+	  max-width: calc(100vw - 24px);
+	  backdrop-filter: blur(10px);
+	  box-shadow: var(--shadow);
+	  z-index: 9999;
+	  text-align: center;
+	}
+	.toastx.show{ display: block; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+	<div class="cardx">
+	  <div class="header">
+		<p class="title m-0">NADO S1 — $ per POINT</p>
+		<p class="subtitle">Live estimate using: (FDV × Airdrop %) ÷ Total Points</p>
+	  </div>
+
+	  <div class="content">
+		<!-- FDV -->
+		<div class="rowx">
+		  <div class="topline">
+			<div class="label">FDV Marketcap <span style="color:var(--muted)">$INK</span></div>
+			<div class="pill" id="fdvLabel">$1.00B</div>
+		  </div>
+		  <input id="fdv" class="form-range" type="range"
+				 min="250000000" max="10000000000" step="50000000" value="1000000000">
+		  <div class="range-meta"><span>$250M</span><span>$10B</span></div>
+		</div>
+
+		<!-- Airdrop % -->
+		<div class="rowx">
+		  <div class="topline">
+			<div class="label">$INK % airdrop to <span style="color:var(--muted)">NADO SEASON 1</span></div>
+			<div class="pill" id="pctLabel">10%</div>
+		  </div>
+		  <input id="pct" class="form-range" type="range"
+				 min="5" max="25" step="1" value="10">
+		  <div class="range-meta"><span>5%</span><span>25%</span></div>
+		</div>
+
+		<!-- Points -->
+		<div class="rowx">
+		  <div class="topline">
+			<div class="label">Total <span style="color:var(--muted)">NADO SEASON 1</span> points</div>
+			<div class="pill" id="pointsLabel">30.0M</div>
+		  </div>
+		  <input id="points" class="form-range" type="range"
+				 min="20000000" max="50000000" step="500000" value="30000000">
+		  <div class="range-meta"><span>20M</span><span>50M</span></div>
+		</div>
+
+		<!-- Result -->
+		<div class="resultBox">
+		  <div class="d-flex align-items-end justify-content-between gap-3">
+			<div>
+			  <div class="resultLabel">Calculated result</div>
+			  <div class="label">Estimated <span style="color:var(--muted)">$ per POINT</span></div>
+			</div>
+			<div class="text-end">
+			  <div class="resultValue" id="result">$0.003333</div>
+			  <div class="resultSub" id="subResult">Airdrop pool: $100.00M</div>
+			</div>
+		  </div>
+
+		  <div class="btns">
+			<button class="btn btn-darksoft btn-lg" id="copyBtn">Copy result</button>
+			<button class="btn btn-light btn-lg" id="imgBtn">Save as image (PNG)</button>
+		  </div>
+		</div>
+	  </div>
+	</div>
+  </div>
+
+  <div class="toastx" id="toast">Copied!</div>
+
+  <script>
+	const fdvEl = document.getElementById("fdv");
+	const pctEl = document.getElementById("pct");
+	const pointsEl = document.getElementById("points");
+
+	const fdvLabel = document.getElementById("fdvLabel");
+	const pctLabel = document.getElementById("pctLabel");
+	const pointsLabel = document.getElementById("pointsLabel");
+
+	const resultEl = document.getElementById("result");
+	const subResultEl = document.getElementById("subResult");
+
+	const copyBtn = document.getElementById("copyBtn");
+	const imgBtn = document.getElementById("imgBtn");
+
+	const toast = document.getElementById("toast");
+
+	function showToast(msg){
+	  toast.textContent = msg;
+	  toast.classList.add("show");
+	  clearTimeout(showToast._t);
+	  showToast._t = setTimeout(() => toast.classList.remove("show"), 1400);
+	}
+
+	function formatMoneyShort(n) {
+	  const abs = Math.abs(n);
+	  if (abs >= 1e9) return `$${(n / 1e9).toFixed(2)}B`;
+	  if (abs >= 1e6) return `$${(n / 1e6).toFixed(2)}M`;
+	  if (abs >= 1e3) return `$${(n / 1e3).toFixed(2)}K`;
+	  return `$${n.toFixed(2)}`;
+	}
+
+	function formatNumberShort(n) {
+	  const abs = Math.abs(n);
+	  if (abs >= 1e9) return `${(n / 1e9).toFixed(2)}B`;
+	  if (abs >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
+	  if (abs >= 1e3) return `${(n / 1e3).toFixed(1)}K`;
+	  return `${Math.round(n)}`;
+	}
+
+	function calc() {
+	  const fdv = Number(fdvEl.value);
+	  const pct = Number(pctEl.value) / 100;
+	  const points = Number(pointsEl.value);
+
+	  fdvLabel.textContent = formatMoneyShort(fdv);
+	  pctLabel.textContent = `${Math.round(pct * 100)}%`;
+	  pointsLabel.textContent = formatNumberShort(points);
+
+	  const airdropPool = fdv * pct;
+	  const dollarsPerPoint = airdropPool / points;
+
+	  const dp =
+		dollarsPerPoint >= 1 ? 2 :
+		dollarsPerPoint >= 0.1 ? 4 :
+		dollarsPerPoint >= 0.01 ? 5 :
+		6;
+
+	  resultEl.textContent = `$${dollarsPerPoint.toFixed(dp)}`;
+	  subResultEl.textContent = `Airdrop pool: ${formatMoneyShort(airdropPool)} • Points: ${formatNumberShort(points)}`;
+	}
+
+	async function copyText(text){
+	  try{
+		await navigator.clipboard.writeText(text);
+		showToast("Copied to clipboard ✅");
+	  }catch(e){
+		// Fallback
+		const ta = document.createElement("textarea");
+		ta.value = text;
+		document.body.appendChild(ta);
+		ta.select();
+		document.execCommand("copy");
+		document.body.removeChild(ta);
+		showToast("Copied ✅");
+	  }
+	}
+
+	function buildShareText(){
+	  const fdv = formatMoneyShort(Number(fdvEl.value));
+	  const pct = `${pctEl.value}%`;
+	  const pts = formatNumberShort(Number(pointsEl.value));
+	  const res = resultEl.textContent;
+
+	  return [
+		`NADO S1 — $ per POINT`,
+		`Result: ${res}`,
+		`FDV: ${fdv}`,
+		`Airdrop: ${pct}`,
+		`Total Points: ${pts}`,
+	  ].join("\n");
+	}
+
+	function drawShareImage(){
+	  const fdvRaw = Number(fdvEl.value);
+	  const pctRaw = Number(pctEl.value);
+	  const pointsRaw = Number(pointsEl.value);
+
+	  const fdv = formatMoneyShort(fdvRaw);
+	  const pct = `${pctRaw}%`;
+	  const pts = formatNumberShort(pointsRaw);
+	  const res = resultEl.textContent;
+
+	  const airdropPool = fdvRaw * (pctRaw/100);
+	  const pool = formatMoneyShort(airdropPool);
+
+	  const dt = new Date();
+	  const stamp = dt.toLocaleString();
+
+	  // Canvas settings (crisp on mobile)
+	  const W = 1080;
+	  const H = 1080;
+	  const canvas = document.createElement("canvas");
+	  canvas.width = W;
+	  canvas.height = H;
+	  const ctx = canvas.getContext("2d");
+
+	  // Background gradient
+	  const g = ctx.createLinearGradient(0, 0, W, H);
+	  g.addColorStop(0, "#070b14");
+	  g.addColorStop(1, "#0b1220");
+	  ctx.fillStyle = g;
+	  ctx.fillRect(0, 0, W, H);
+
+	  // Soft glow blobs
+	  function blob(x,y,r, color){
+		const rg = ctx.createRadialGradient(x,y,0,x,y,r);
+		rg.addColorStop(0, color);
+		rg.addColorStop(1, "rgba(0,0,0,0)");
+		ctx.fillStyle = rg;
+		ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+	  }
+	  blob(220, 160, 340, "rgba(110,168,255,0.20)");
+	  blob(900, 260, 420, "rgba(180,90,255,0.18)");
+
+	  // Card
+	  const pad = 70;
+	  const cardX = pad, cardY = pad, cardW = W - pad*2, cardH = H - pad*2;
+
+	  // rounded rect helper
+	  function roundRect(x, y, w, h, r){
+		const rr = Math.min(r, w/2, h/2);
+		ctx.beginPath();
+		ctx.moveTo(x+rr, y);
+		ctx.arcTo(x+w, y, x+w, y+h, rr);
+		ctx.arcTo(x+w, y+h, x, y+h, rr);
+		ctx.arcTo(x, y+h, x, y, rr);
+		ctx.arcTo(x, y, x+w, y, rr);
+		ctx.closePath();
+	  }
+
+	  ctx.fillStyle = "rgba(255,255,255,0.06)";
+	  ctx.strokeStyle = "rgba(255,255,255,0.12)";
+	  ctx.lineWidth = 3;
+	  roundRect(cardX, cardY, cardW, cardH, 42);
+	  ctx.fill();
+	  ctx.stroke();
+
+	  // Typography
+	  ctx.fillStyle = "rgba(255,255,255,0.92)";
+	  ctx.font = "700 44px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+	  ctx.fillText("NADO S1 — $ per POINT", cardX + 56, cardY + 110);
+
+	  ctx.fillStyle = "rgba(255,255,255,0.65)";
+	  ctx.font = "500 28px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+	  ctx.fillText("Snapshot (FDV × Airdrop%) ÷ Total Points", cardX + 56, cardY + 155);
+
+	  // Result big
+	  ctx.fillStyle = "rgba(255,255,255,0.92)";
+	  ctx.font = "800 110px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+	  ctx.fillText(res, cardX + 56, cardY + 300);
+
+	  ctx.fillStyle = "rgba(255,255,255,0.65)";
+	  ctx.font = "600 30px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+	  ctx.fillText(`Airdrop pool: ${pool}`, cardX + 56, cardY + 350);
+
+	  // Divider
+	  ctx.strokeStyle = "rgba(255,255,255,0.10)";
+	  ctx.lineWidth = 2;
+	  ctx.beginPath();
+	  ctx.moveTo(cardX + 56, cardY + 405);
+	  ctx.lineTo(cardX + cardW - 56, cardY + 405);
+	  ctx.stroke();
+
+	  // Settings block
+	  const leftX = cardX + 56;
+	  let y = cardY + 480;
+
+	  function line(label, value){
+		ctx.fillStyle = "rgba(255,255,255,0.65)";
+		ctx.font = "600 30px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+		ctx.fillText(label, leftX, y);
+
+		ctx.fillStyle = "rgba(255,255,255,0.92)";
+		ctx.font = "700 34px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+		ctx.fillText(value, leftX, y + 46);
+		y += 110;
+	  }
+
+	  line("FDV Marketcap ($INK)", fdv);
+	  line("$INK % Airdrop to NADO S1", pct);
+	  line("Total NADO S1 Points", pts);
+
+	  // Footer
+	  ctx.fillStyle = "rgba(255,255,255,0.50)";
+	  ctx.font = "500 26px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+	  ctx.fillText(stamp, leftX, cardY + cardH - 70);
+
+	  return canvas;
+	}
+
+	function downloadCanvasPNG(canvas, filename){
+	  const a = document.createElement("a");
+	  a.href = canvas.toDataURL("image/png");
+	  a.download = filename;
+	  document.body.appendChild(a);
+	  a.click();
+	  document.body.removeChild(a);
+	}
+
+	copyBtn.addEventListener("click", async () => {
+	  await copyText(buildShareText());
+	});
+
+	imgBtn.addEventListener("click", () => {
+	  const canvas = drawShareImage();
+	  const fdv = Math.round(Number(fdvEl.value));
+	  const pct = Number(pctEl.value);
+	  const pts = Math.round(Number(pointsEl.value));
+	  const filename = `nado_s1_${fdv}_${pct}pct_${pts}_snapshot.png`;
+	  downloadCanvasPNG(canvas, filename);
+	  showToast("Image saved ✅");
+	});
+
+	[fdvEl, pctEl, pointsEl].forEach(el => el.addEventListener("input", calc));
+	calc();
+  </script>
+</body>
+</html>
